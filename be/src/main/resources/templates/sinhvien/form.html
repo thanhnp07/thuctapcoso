@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${sinhVien != null ? 'Sửa sinh viên' : 'Thêm sinh viên'} + ' - QLSV'">Form sinh viên</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            color: white; padding-top: 20px; z-index: 1000; overflow-y: auto;
+        }
+        .sidebar .brand { padding: 20px; font-size: 1.5rem; font-weight: bold; text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 12px 20px; margin: 5px 15px;
+            border-radius: 8px; transition: all 0.3s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar .nav-link i { margin-right: 10px; width: 20px; }
+        
+        .main-content { margin-left: var(--sidebar-width); padding: 0; min-height: 100vh; background-color: #f8f9fa; }
+        .top-navbar { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px 30px; margin-bottom: 30px; }
+        .content-area { padding: 0 30px 30px 30px; }
+        
+        .form-card { border: none; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .required::after { content: " *"; color: red; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand"><i class="bi bi-mortarboard-fill"></i> QLSV</div>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="nav-link active" href="/sinhvien"><i class="bi bi-people-fill"></i> Sinh viên</a>
+            <a class="nav-link" href="/khoa"><i class="bi bi-building"></i> Khoa</a>
+            <a class="nav-link" href="/lop"><i class="bi bi-book"></i> Lớp</a>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-navbar d-flex justify-content-between align-items-center">
+            <h4 class="mb-0" th:text="${sinhVien != null ? 'Sửa sinh viên' : 'Thêm sinh viên'}">Form sinh viên</h4>
+            <div class="d-flex align-items-center">
+                <span class="me-3" sec:authentication="name">Admin</span>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="card form-card">
+                <div class="card-body p-4">
+                    <form id="studentForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Mã sinh viên</label>
+                                <input type="text" class="form-control" id="maSV" name="maSV" 
+                                       th:value="${sinhVien?.maSV}" 
+                                       th:readonly="${sinhVien != null}"
+                                       required maxlength="20" placeholder="Ví dụ: SV001">
+                                <div class="invalid-feedback">Vui lòng nhập mã sinh viên</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Họ và tên</label>
+                                <input type="text" class="form-control" id="hoTen" name="hoTen" 
+                                       th:value="${sinhVien?.hoTen}" 
+                                       required maxlength="100" placeholder="Nguyễn Văn A">
+                                <div class="invalid-feedback">Vui lòng nhập họ tên</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Ngày sinh</label>
+                                <input type="date" class="form-control" id="ngaySinh" name="ngaySinh" 
+                                       th:value="${sinhVien != null ? #temporals.format(sinhVien.ngaySinh, 'yyyy-MM-dd') : ''}" 
+                                       required>
+                                <div class="invalid-feedback">Vui lòng chọn ngày sinh</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Giới tính</label>
+                                <select class="form-select" id="gioiTinh" name="gioiTinh" required>
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Nam" th:selected="${sinhVien?.gioiTinh == 'Nam'}">Nam</option>
+                                    <option value="Nữ" th:selected="${sinhVien?.gioiTinh == 'Nữ'}">Nữ</option>
+                                    <option value="Khác" th:selected="${sinhVien?.gioiTinh == 'Khác'}">Khác</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn giới tính</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       th:value="${sinhVien?.email}" 
+                                       required maxlength="100" placeholder="example@email.com">
+                                <div class="invalid-feedback">Vui lòng nhập email hợp lệ</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" class="form-control" id="soDienThoai" name="soDienThoai" 
+                                       th:value="${sinhVien?.soDienThoai}" 
+                                       pattern="[0-9]{10,11}" maxlength="11" placeholder="0901234567">
+                                <div class="invalid-feedback">Số điện thoại phải có 10-11 chữ số</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Khoa</label>
+                                <select class="form-select" id="maKhoa" name="maKhoa" required onchange="loadLopByKhoa()">
+                                    <option value="">-- Chọn khoa --</option>
+                                    <option th:each="khoa : ${danhSachKhoa}" 
+                                            th:value="${khoa.maKhoa}" 
+                                            th:text="${khoa.tenKhoa}"
+                                            th:selected="${sinhVien?.maKhoa == khoa.maKhoa}"></option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn khoa</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Lớp</label>
+                                <select class="form-select" id="maLop" name="maLop" required>
+                                    <option value="">-- Chọn lớp --</option>
+                                    <option th:each="lop : ${danhSachLop}" 
+                                            th:value="${lop.maLop}" 
+                                            th:text="${lop.tenLop}"
+                                            th:selected="${sinhVien?.maLop == lop.maLop}"></option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn lớp</div>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Địa chỉ</label>
+                                <input type="text" class="form-control" id="diaChi" name="diaChi" 
+                                       th:value="${sinhVien?.diaChi}" 
+                                       maxlength="200" placeholder="Địa chỉ chi tiết">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">GPA</label>
+                                <input type="number" class="form-control" id="gpa" name="gpa" 
+                                       th:value="${sinhVien?.gpa}" 
+                                       step="0.01" min="0" max="4" placeholder="0.00 - 4.00">
+                                <div class="invalid-feedback">GPA phải từ 0.00 đến 4.00</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Trạng thái</label>
+                                <select class="form-select" id="trangThai" name="trangThai" required>
+                                    <option value="DANG_HOC" th:selected="${sinhVien == null || sinhVien.trangThai == 'DANG_HOC'}">Đang học</option>
+                                    <option value="BAO_LUU" th:selected="${sinhVien?.trangThai == 'BAO_LUU'}">Bảo lưu</option>
+                                    <option value="THOI_HOC" th:selected="${sinhVien?.trangThai == 'THOI_HOC'}">Thôi học</option>
+                                    <option value="TOT_NGHIEP" th:selected="${sinhVien?.trangThai == 'TOT_NGHIEP'}">Tốt nghiệp</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="/sinhvien" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> <span th:text="${sinhVien != null ? 'Cập nhật' : 'Thêm mới'}">Lưu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script th:inline="javascript">
+        const isEdit = /*[[${sinhVien != null}]]*/ false;
+        const maSVEdit = /*[[${sinhVien?.maSV}]]*/ '';
+        
+        $(document).ready(function() {
+            const form = document.getElementById('studentForm');
+            form.addEventListener('submit', handleSubmit);
+            
+            // If editing, load classes for selected department
+            if (isEdit) {
+                loadLopByKhoa();
+            }
+        });
+        
+        function loadLopByKhoa() {
+            const maKhoa = $('#maKhoa').val();
+            const maLopSelect = $('#maLop');
+            const currentMaLop = /*[[${sinhVien?.maLop}]]*/ '';
+            
+            if (!maKhoa) {
+                maLopSelect.html('<option value="">-- Chọn lớp --</option>');
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/lop/khoa/' + maKhoa,
+                type: 'GET',
+                success: function(response) {
+                    maLopSelect.html('<option value="">-- Chọn lớp --</option>');
+                    if (response.success && response.data) {
+                        response.data.forEach(function(lop) {
+                            const selected = lop.maLop === currentMaLop ? 'selected' : '';
+                            maLopSelect.append(`<option value="${lop.maLop}" ${selected}>${lop.tenLop}</option>`);
+                        });
+                    }
+                },
+                error: function() {
+                    alert('Không thể tải danh sách lớp');
+                }
+            });
+        }
+        
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            if (!form.checkValidity()) {
+                event.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            const formData = {
+                maSV: $('#maSV').val(),
+                hoTen: $('#hoTen').val(),
+                ngaySinh: $('#ngaySinh').val(),
+                gioiTinh: $('#gioiTinh').val(),
+                email: $('#email').val(),
+                soDienThoai: $('#soDienThoai').val() || null,
+                diaChi: $('#diaChi').val() || null,
+                maKhoa: $('#maKhoa').val(),
+                maLop: $('#maLop').val(),
+                gpa: $('#gpa').val() ? parseFloat($('#gpa').val()) : null,
+                trangThai: $('#trangThai').val()
+            };
+            
+            const url = isEdit ? '/api/sinhvien/' + maSVEdit : '/api/sinhvien';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    if (response.success) {
+                        alert(isEdit ? 'Cập nhật sinh viên thành công!' : 'Thêm sinh viên thành công!');
+                        window.location.href = '/sinhvien';
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Có lỗi xảy ra';
+                    alert('Lỗi: ' + error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

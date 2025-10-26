@@ -1,0 +1,396 @@
+Tạo project be quản lý sinh viên:
+•	Tác nhân:
+o	Admin: quản lý toàn bộ hệ thống (CRUD sinh viên, quản lý khoa/lớp, xuất báo cáo).
+o	Người dùng (phòng đào tạo/giảng viên): sử dụng chức năng tìm kiếm, thống kê, xuất báo cáo.
+•	Các Usecase chính:
+o	Đăng nhập/Đăng xuất hệ thống.
+o	Quản lý thông tin sinh viên.
+o	Quản lý khoa/lớp.
+o	Tìm kiếm và thống kê sinh viên.
+o	Xuất báo cáo (Excel/PDF).
+2.3. Kịch bản
+Kịch bản 1: Thêm sinh viên mới
+•	Tác nhân: Admin.
+•	Điều kiện trước: Đăng nhập thành công.
+•	Luồng sự kiện chính:
+1.	Admin chọn chức năng “Thêm sinh viên”.
+2.	Nhập thông tin sinh viên (mã số, họ tên, ngày sinh, khoa, lớp).
+3.	Hệ thống kiểm tra dữ liệu nhập.
+4.	Nếu hợp lệ → lưu vào CSDL và thông báo thành công.
+5.	Nếu không hợp lệ → hiển thị thông báo lỗi.
+Kịch bản 2: Tìm kiếm sinh viên
+•	Tác nhân: Người dùng.
+•	Điều kiện trước: Truy cập hệ thống.
+•	Luồng sự kiện chính:
+1.	Nhập từ khóa (mã số, họ tên, khoa, lớp).
+2.	Hệ thống truy vấn dữ liệu.
+3.	Hiển thị danh sách kết quả.
+Kịch bản 3: Xuất báo cáo
+•	Tác nhân: Admin hoặc người dùng.
+•	Điều kiện trước: Có dữ liệu sinh viên trong hệ thống.
+•	Luồng sự kiện chính:
+1.	Người dùng chọn chức năng “Xuất báo cáo”.
+2.	Hệ thống lấy dữ liệu từ CSDL.
+3.	Xuất ra file Excel hoặc PDF.
+4.	Thông báo “Xuất thành công”.
+2.4. Biểu đồ tuần tự (Sequence Diagram)
+2.4.1. Chức năng: Thêm sinh viên
+sequenceDiagram
+    participant Admin
+    participant UI as Giao diện
+    participant Service
+    participant Repository
+    participant DB as Database
+
+    Admin->>UI: Nhập thông tin sinh viên và gửi yêu cầu "Thêm"
+    UI->>Service: Gửi request thêm sinh viên
+    Service->>Service: Kiểm tra dữ liệu hợp lệ
+    alt Dữ liệu không hợp lệ
+        Service-->>UI: Trả về lỗi xác thực
+        UI-->>Admin: Hiển thị thông báo lỗi
+    else Dữ liệu hợp lệ
+        Service->>Repository: Gọi hàm save()
+        Repository->>DB: Thực hiện INSERT sinh viên
+        DB-->>Repository: Trả kết quả (OK)
+        Repository-->>Service: Phản hồi thành công
+        Service-->>UI: Trả kết quả thêm thành công
+        UI-->>Admin: Hiển thị “Thêm thành công”
+    end
+
+
+Chú thích: Biểu đồ mô tả toàn bộ luồng thêm sinh viên, từ nhập liệu → kiểm tra → lưu cơ sở dữ liệu.
+
+2.4.2. Chức năng: Tìm kiếm sinh viên
+sequenceDiagram
+    participant User as Người dùng
+    participant UI as Giao diện
+    participant Service
+    participant Repository
+    participant DB as Database
+
+    User->>UI: Nhập từ khóa tìm kiếm (mã số, họ tên, khoa, lớp)
+    UI->>Service: Gửi yêu cầu tìm kiếm
+    Service->>Repository: Gọi hàm findByCriteria()
+    Repository->>DB: Thực thi truy vấn SELECT
+    DB-->>Repository: Trả về danh sách sinh viên
+    Repository-->>Service: Trả danh sách kết quả
+    Service-->>UI: Trả dữ liệu hiển thị
+    UI-->>User: Hiển thị danh sách sinh viên tìm thấy
+
+
+Chú thích: Biểu đồ tuần tự minh họa quá trình người dùng tìm kiếm thông tin sinh viên, Service và Repository phối hợp truy vấn dữ liệu.
+
+2.4.3. Chức năng: Xuất báo cáo (Excel/PDF)
+sequenceDiagram
+    participant User as Người dùng
+    participant UI as Giao diện
+    participant Service
+    participant Repository
+    participant DB as Database
+    participant Export as Module xuất báo cáo
+
+    User->>UI: Chọn “Xuất báo cáo” và định dạng (Excel/PDF)
+    UI->>Service: Gửi yêu cầu xuất báo cáo
+    Service->>Repository: Lấy dữ liệu thống kê sinh viên
+    Repository->>DB: Thực thi truy vấn SELECT tổng hợp
+    DB-->>Repository: Trả dữ liệu kết quả
+    Repository-->>Service: Trả danh sách dữ liệu
+    Service->>Export: Gọi module sinh file theo định dạng
+    Export-->>Service: Trả file đã sinh (Excel/PDF)
+    Service-->>UI: Gửi file cho người dùng
+    UI-->>User: Hiển thị thông báo “Xuất thành công” và tải file về
+
+
+Chú thích: Biểu đồ tuần tự thể hiện luồng lấy dữ liệu, sinh tệp báo cáo, và phản hồi cho người dùng sau khi xuất thành công.
+2.5. Biểu đồ hành động (Activity Diagrams)
+
+2.5.1. Thêm sinh viên
+
+flowchart TD
+  A([Bắt đầu]) --> B[Admin mở màn hình "Thêm sinh viên"]
+  B --> C[Nhập thông tin: mã số, họ tên, ngày sinh, khoa, lớp]
+  C --> D{Kiểm tra hợp lệ dữ liệu}
+  D -- Không hợp lệ --> E[Hiển thị lỗi chi tiết & yêu cầu nhập lại]
+  E --> C
+  D -- Hợp lệ --> F[Service gọi Repository lưu bản ghi]
+  F --> G[Database INSERT]
+  G --> H{Lưu thành công?}
+  H -- Không --> I[Thông báo lỗi hệ thống / ràng buộc]
+  I --> C
+  H -- Có --> J[Thông báo thành công]
+  J --> K([Kết thúc])
+
+
+Chú thích: Biểu đồ hành động cho luồng thêm sinh viên với kiểm tra hợp lệ và xử lý lỗi.
+
+2.5.2. Tìm kiếm sinh viên
+
+flowchart TD
+  A([Bắt đầu]) --> B[Người dùng mở chức năng Tìm kiếm]
+  B --> C[Nhập từ khóa: mã số/họ tên/khoa/lớp]
+  C --> D[Service xây dựng tiêu chí truy vấn]
+  D --> E[Repository truy vấn Database]
+  E --> F{Có kết quả?}
+  F -- Không --> G[Hiển thị "Không tìm thấy"]
+  G --> H([Kết thúc])
+  F -- Có --> I[Hiển thị danh sách kết quả & phân trang]
+  I --> H([Kết thúc])
+
+
+Chú thích: Biểu đồ hành động mô tả các bước tìm kiếm và hiển thị kết quả.
+
+2.5.3. Xuất báo cáo (Excel/PDF)
+
+flowchart TD
+  A([Bắt đầu]) --> B[Người dùng chọn "Xuất báo cáo"]
+  B --> C[Chọn định dạng: Excel hoặc PDF]
+  C --> D[Service lấy dữ liệu thống kê]
+  D --> E{Có dữ liệu?}
+  E -- Không --> F[Thông báo không có dữ liệu để xuất]
+  F --> K([Kết thúc])
+  E -- Có --> G[Render dữ liệu theo mẫu báo cáo]
+  G --> H[Sinh tệp Excel/PDF]
+  H --> I[Trả tệp để tải về]
+  I --> J[Thông báo "Xuất thành công"]
+  J --> K([Kết thúc])
+
+
+Chú thích: Biểu đồ hành động mô tả chuẩn bị dữ liệu, render và sinh tệp báo cáo.
+2.6. Lưu đồ (Thuật toán)
+
+2.6.1. Thuật toán Thêm sinh viên
+
+flowchart TD
+  A([Start]) --> B[Nhập thông tin sinh viên]
+  B --> C{Validate dữ liệu}
+  C -- Fail --> D[Hiển thị lỗi & nhập lại]
+  D --> B
+  C -- Pass --> E[Gọi lưu Database]
+  E --> F{Insert OK?}
+  F -- No --> G[Thông báo lỗi hệ thống / ràng buộc]
+  G --> B
+  F -- Yes --> H[Thông báo thành công]
+  H --> I([End])
+
+
+Chú thích: Lưu đồ thuật toán cho thao tác thêm mới, tập trung vào rẽ nhánh hợp lệ/không hợp lệ.
+
+2.6.2. Thuật toán Tìm kiếm sinh viên
+
+flowchart TD
+  A([Start]) --> B[Nhập từ khóa]
+  B --> C[Chuẩn hóa/tiền xử lý từ khóa]
+  C --> D[Thực thi truy vấn]
+  D --> E{Kết quả rỗng?}
+  E -- Yes --> F[Thông báo "Không tìm thấy"]
+  F --> G([End])
+  E -- No --> H[Hiển thị danh sách & phân trang]
+  H --> G([End])
+
+
+Chú thích: Lưu đồ thuật toán thể hiện kiểm tra rỗng và hiển thị kết quả.
+
+2.6.3. Thuật toán Xuất báo cáo
+
+flowchart TD
+  A([Start]) --> B[Chọn định dạng (Excel/PDF)]
+  B --> C[Lấy dữ liệu thống kê]
+  C --> D{Có dữ liệu?}
+  D -- No --> E[Thông báo không có dữ liệu]
+  E --> J([End])
+  D -- Yes --> F[Tạo model dữ liệu theo template]
+  F --> G[Sinh tệp (writer PDF/Excel)]
+  G --> H{Sinh tệp OK?}
+  H -- No --> I[Thông báo lỗi xuất file]
+  I --> J([End])
+  H -- Yes --> K[Trả tệp tải về]
+  K --> L[Thông báo "Xuất thành công"]
+  L --> J([End])
+
+
+Chú thích: Lưu đồ thuật toán cho xuất báo cáo theo hai định dạng, có xử lý lỗi sinh tệp.
+✳️ Chương III: Thiết kế hệ thống (Bản hoàn thiện mở rộng)
+3.1. Thiết kế giao diện và kịch bản cho các chức năng
+
+1. Thiết kế giao diện
+Giao diện được xây dựng theo hướng tối giản, tập trung vào khả năng thao tác nhanh của người dùng. Các màn hình chính gồm:
+- Màn hình chính: danh sách sinh viên, thanh tìm kiếm, nút Thêm/Sửa/Xóa/Xuất báo cáo.
+- Màn hình thêm/sửa: form nhập Mã SV, Họ tên, Ngày sinh, Giới tính, Lớp, Khoa, kèm kiểm tra hợp lệ.
+- Màn hình tìm kiếm: lọc theo từ khóa, khoa, lớp; hỗ trợ phân trang.
+- Màn hình báo cáo: chọn phạm vi (khoa/lớp), định dạng (Excel/PDF), xác nhận và tải xuống.
+2. Kịch bản
+Kịch bản tiêu biểu:
+• Thêm sinh viên: nhập dữ liệu → kiểm tra hợp lệ → lưu → hiển thị thông báo thành công.
+• Sửa thông tin: chọn một sinh viên → cập nhật trường thay đổi → lưu → làm mới danh sách.
+• Xóa: chọn một/một nhóm sinh viên → xác nhận → xóa mềm (soft delete) → cập nhật thống kê.
+• Tìm kiếm: nhập từ khóa (mã/tên) hoặc lọc theo khoa, lớp → xem kết quả → xuất báo cáo theo kết quả lọc.
+• Xuất báo cáo: chọn định dạng → hệ thống dựng dữ liệu → sinh file Excel (Apache POI)/PDF (JasperReports).)
+
+3.2. Thiết kế các lớp thực thể cho hệ thống
+1. Các lớp chính
+
+SinhVien(maSV, hoTen, ngaySinh, gioiTinh, maLop, maKhoa)
+
+Lop(maLop, tenLop, maKhoa)
+
+Khoa(maKhoa, tenKhoa)
+
+TaiKhoan(username, passwordHash, vaiTro, maSV)
+
+BaoCao(maBC, loai, ngayLap, dinhDang, maSV)
+
+2. Biểu đồ lớp
+classDiagram
+    class Khoa {
+        - String maKhoa
+        - String tenKhoa
+    }
+
+    class Lop {
+        - String maLop
+        - String tenLop
+        - String maKhoa
+    }
+
+    class SinhVien {
+        - String maSV
+        - String hoTen
+        - Date ngaySinh
+        - String gioiTinh
+        - String maLop
+        - String maKhoa
+    }
+
+    class TaiKhoan {
+        - String username
+        - String passwordHash
+        - String vaiTro
+        - String maSV
+    }
+
+    class BaoCao {
+        - String maBC
+        - String loai
+        - Date ngayLap
+        - String dinhDang
+        - String maSV
+    }
+
+    Khoa "1" --> "n" Lop : chứa
+    Lop "1" --> "n" SinhVien : có
+    Khoa "1" --> "n" SinhVien : thuộc
+    SinhVien "1" --> "1" TaiKhoan : đăng nhập
+    SinhVien "1" --> "n" BaoCao : lập
+
+
+📝 Hình 3.1: Biểu đồ lớp thực thể của hệ thống quản lý sinh viên.
+
+3.3. Thiết kế cơ sở dữ liệu
+erDiagram
+    KHOA {
+        string maKhoa PK
+        string tenKhoa
+    }
+
+    LOP {
+        string maLop PK
+        string tenLop
+        string maKhoa FK
+    }
+
+    SINHVIEN {
+        string maSV PK
+        string hoTen
+        date ngaySinh
+        string gioiTinh
+        string maLop FK
+        string maKhoa FK
+    }
+
+    TAIKHOAN {
+        string username PK
+        string passwordHash
+        string vaiTro
+        string maSV FK
+    }
+
+    BAOCAO {
+        string maBC PK
+        string loai
+        date ngayLap
+        string dinhDang
+        string maSV FK
+    }
+
+    KHOA ||--o{ LOP : "quan lý"
+    KHOA ||--o{ SINHVIEN : "chứa"
+    LOP ||--o{ SINHVIEN : "gồm"
+    SINHVIEN ||--|| TAIKHOAN : "sở hữu"
+    SINHVIEN ||--o{ BAOCAO : "tạo"
+
+
+📝 Hình 3.2: Lược đồ thực thể–quan hệ (ERD) hệ thống quản lý sinh viên.
+
+3.4. Biểu đồ tuần tự cho các chức năng
+Thêm sinh viên
+sequenceDiagram
+    participant Admin
+    participant UI as Giao diện
+    participant Service
+    participant Repository
+    participant DB as Database
+
+    Admin->>UI: Nhập thông tin sinh viên và gửi yêu cầu "Thêm"
+    UI->>Service: Gửi request thêm sinh viên
+    Service->>Service: Kiểm tra dữ liệu hợp lệ
+    alt Dữ liệu không hợp lệ
+        Service-->>UI: Trả về lỗi xác thực
+        UI-->>Admin: Hiển thị thông báo lỗi
+    else Dữ liệu hợp lệ
+        Service->>Repository: Gọi save()
+        Repository->>DB: INSERT dữ liệu
+        DB-->>Repository: Trả kết quả thành công
+        Repository-->>Service: OK
+        Service-->>UI: Phản hồi thành công
+        UI-->>Admin: Hiển thị “Thêm thành công”
+    end
+
+
+📝 Hình 3.3: Biểu đồ tuần tự chức năng Thêm sinh viên.
+
+3.5. Lưu đồ thuật toán xuất báo cáo Excel
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng chọn "Xuất báo cáo"]
+    B --> C[Chọn định dạng Excel]
+    C --> D[Lấy dữ liệu sinh viên từ CSDL]
+    D --> E{Có dữ liệu không?}
+    E -- Không --> F[Hiển thị thông báo 'Không có dữ liệu']
+    F --> G([Kết thúc])
+    E -- Có --> H[Chuẩn bị mẫu Excel (Apache POI)]
+    H --> I[Ghi dữ liệu vào sheet]
+    I --> J[Lưu tệp .xlsx trên máy]
+    J --> K[Hiển thị thông báo “Xuất thành công”]
+    K --> G([Kết thúc])
+
+
+📝 Hình 3.4: Lưu đồ thuật toán xuất báo cáo Excel.
+
+3.6. Biểu đồ thành phần
+graph TD
+    A[UI Layer<br/>(React/Thymeleaf)] --> B[Service Layer<br/>(Spring Boot Services)]
+    B --> C[Repository Layer<br/>(Spring Data JPA)]
+    C --> D[(PostgreSQL Database)]
+    B --> E[Export Module<br/>(Apache POI / JasperReports)]
+    B --> F[Security Module<br/>(Spring Security)]
+
+
+📝 Hình 3.5: Biểu đồ thành phần của hệ thống.
+
+3.7. Biểu đồ triển khai hệ thống
+graph TD
+    Client[Client máy người dùng<br/>(Trình duyệt web)] -->|HTTP/HTTPS| Server[Server ứng dụng<br/>Spring Boot + Tomcat]
+    Server -->|JDBC| DB[(PostgreSQL Database)]
+    Server -->|Export| Storage[File System / Cloud Storage]
+
+
+📝 Hình 3.6: Biểu đồ triển khai hệ thống quản lý sinh viên.

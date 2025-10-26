@@ -1,0 +1,131 @@
+# Test Data Script - Sample data for development
+
+## Khoa (Departments)
+POST http://localhost:8080/api/khoa
+Content-Type: application/json
+
+{
+  "maKhoa": "CNTT",
+  "tenKhoa": "Công nghệ thông tin",
+  "moTa": "Khoa Công nghệ thông tin - Đào tạo các chuyên ngành về phần mềm, mạng, AI"
+}
+
+###
+
+POST http://localhost:8080/api/khoa
+Content-Type: application/json
+
+{
+  "maKhoa": "KTDN",
+  "tenKhoa": "Kinh tế - Quản trị kinh doanh",
+  "moTa": "Khoa Kinh tế và Quản trị kinh doanh"
+}
+
+###
+
+POST http://localhost:8080/api/khoa
+Content-Type: application/json
+
+{
+  "maKhoa": "NGOAINGU",
+  "tenKhoa": "Ngoại ngữ",
+  "moTa": "Khoa Ngoại ngữ - Tiếng Anh, Tiếng Nhật, Tiếng Trung"
+}
+
+## Lop (Classes)
+###
+
+POST http://localhost:8080/api/lop
+Content-Type: application/json
+
+{
+  "maLop": "CNTT2020A",
+  "tenLop": "Công nghệ thông tin 2020A",
+  "khoaHoc": "2020-2024",
+  "maKhoa": "CNTT"
+}
+
+###
+
+POST http://localhost:8080/api/lop
+Content-Type: application/json
+
+{
+  "maLop": "CNTT2020B",
+  "tenLop": "Công nghệ thông tin 2020B",
+  "khoaHoc": "2020-2024",
+  "maKhoa": "CNTT"
+}
+
+###
+
+POST http://localhost:8080/api/lop
+Content-Type: application/json
+
+{
+  "maLop": "KTDN2020A",
+  "tenLop": "Kinh tế 2020A",
+  "khoaHoc": "2020-2024",
+  "maKhoa": "KTDN"
+}
+
+## Sinh vien (Students) - Requires authentication
+###
+
+POST http://localhost:8080/api/sinhvien
+Content-Type: application/json
+Authorization: Bearer <your-token>
+
+{
+  "maSV": "SV001",
+  "hoTen": "Nguyễn Văn An",
+  "ngaySinh": "2002-01-15",
+  "gioiTinh": "Nam",
+  "email": "nguyenvanan@gmail.com",
+  "soDienThoai": "0123456789",
+  "diaChi": "Hà Nội",
+  "gpa": 3.5,
+  "trangThai": "DANG_HOC",
+  "maLop": "CNTT2020A",
+  "maKhoa": "CNTT"
+}
+
+###
+
+POST http://localhost:8080/api/sinhvien
+Content-Type: application/json
+Authorization: Bearer <your-token>
+
+{
+  "maSV": "SV002",
+  "hoTen": "Trần Thị Bình",
+  "ngaySinh": "2002-03-20",
+  "gioiTinh": "Nữ",
+  "email": "tranthibinh@gmail.com",
+  "soDienThoai": "0987654321",
+  "diaChi": "Hồ Chí Minh",
+  "gpa": 3.8,
+  "trangThai": "DANG_HOC",
+  "maLop": "CNTT2020A",
+  "maKhoa": "CNTT"
+}
+
+###
+
+POST http://localhost:8080/api/sinhvien
+Content-Type: application/json
+Authorization: Bearer <your-token>
+
+{
+  "maSV": "SV003",
+  "hoTen": "Lê Văn Cường",
+  "ngaySinh": "2002-05-10",
+  "gioiTinh": "Nam",
+  "email": "levancuong@gmail.com",
+  "soDienThoai": "0912345678",
+  "diaChi": "Đà Nẵng",
+  "gpa": 3.2,
+  "trangThai": "DANG_HOC",
+  "maLop": "CNTT2020B",
+  "maKhoa": "CNTT"
+}

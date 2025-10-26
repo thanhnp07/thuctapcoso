@@ -1,0 +1,39 @@
+# Bỏ qua các file build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE files
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+application-local.yml
+application-dev.yml
+
+# Docker volumes
+postgres_data/
+pgadmin_data/
