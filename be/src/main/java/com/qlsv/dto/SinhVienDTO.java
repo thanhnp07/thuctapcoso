@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -50,4 +51,8 @@ public class SinhVienDTO {
     private String maKhoa;
     
     private String tenKhoa;
+    
+    // Audit fields
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

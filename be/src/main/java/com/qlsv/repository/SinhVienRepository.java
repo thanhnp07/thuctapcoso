@@ -19,23 +19,20 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
     
     List<SinhVien> findByHoTenContainingIgnoreCase(String hoTen);
     
-    List<SinhVien> findByLop_MaLop(String maLop);
+    List<SinhVien> findByMaLop(String maLop);
     
-    List<SinhVien> findByKhoa_MaKhoa(String maKhoa);
+    List<SinhVien> findByMaKhoa(String maKhoa);
     
     List<SinhVien> findByGioiTinh(String gioiTinh);
     
     List<SinhVien> findByTrangThai(String trangThai);
     
-    @Query("SELECT sv FROM SinhVien sv JOIN FETCH sv.lop JOIN FETCH sv.khoa WHERE sv.maSV = :maSV")
-    Optional<SinhVien> findByMaSVWithLopAndKhoa(String maSV);
-    
-    // Tìm kiếm đa tiêu chí
+    // Tìm kiếm đa tiêu chí với JPQL query (hỗ trợ sort tự động)
     @Query("SELECT sv FROM SinhVien sv WHERE " +
            "(:maSV IS NULL OR sv.maSV = :maSV) AND " +
-           "(:hoTen IS NULL OR LOWER(sv.hoTen) LIKE LOWER(CONCAT('%', :hoTen, '%'))) AND " +
-           "(:maLop IS NULL OR sv.lop.maLop = :maLop) AND " +
-           "(:maKhoa IS NULL OR sv.khoa.maKhoa = :maKhoa) AND " +
+           "(:hoTen IS NULL OR LOWER(CAST(sv.hoTen AS string)) LIKE LOWER(CONCAT('%', CAST(:hoTen AS string), '%'))) AND " +
+           "(:maLop IS NULL OR sv.maLop = :maLop) AND " +
+           "(:maKhoa IS NULL OR sv.maKhoa = :maKhoa) AND " +
            "(:gioiTinh IS NULL OR sv.gioiTinh = :gioiTinh) AND " +
            "(:trangThai IS NULL OR sv.trangThai = :trangThai)")
     Page<SinhVien> searchSinhVien(
@@ -48,11 +45,28 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
         Pageable pageable
     );
     
+    // Tìm kiếm với keyword (tìm theo mã SV HOẶC họ tên HOẶC email)
+    @Query("SELECT sv FROM SinhVien sv WHERE " +
+           "(:keyword IS NULL OR " +
+           "  CAST(sv.maSV AS string) LIKE CONCAT('%', CAST(:keyword AS string), '%') OR " +
+           "  LOWER(CAST(sv.hoTen AS string)) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) OR " +
+           "  LOWER(CAST(sv.email AS string)) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))) AND " +
+           "(:maLop IS NULL OR sv.maLop = :maLop) AND " +
+           "(:maKhoa IS NULL OR sv.maKhoa = :maKhoa) AND " +
+           "(:gioiTinh IS NULL OR sv.gioiTinh = :gioiTinh)")
+    Page<SinhVien> searchByKeyword(
+        @Param("keyword") String keyword,
+        @Param("maLop") String maLop,
+        @Param("maKhoa") String maKhoa,
+        @Param("gioiTinh") String gioiTinh,
+        Pageable pageable
+    );
+    
     // Thống kê
-    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.khoa.maKhoa = :maKhoa")
+    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.maKhoa = :maKhoa")
     Long countByKhoa(String maKhoa);
     
-    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.lop.maLop = :maLop")
+    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.maLop = :maLop")
     Long countByLop(String maLop);
     
     @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.gioiTinh = :gioiTinh")
@@ -61,10 +75,10 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
     @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.trangThai = :trangThai")
     Long countByTrangThai(String trangThai);
     
-    @Query("SELECT AVG(sv.gpa) FROM SinhVien sv WHERE sv.khoa.maKhoa = :maKhoa")
+    @Query("SELECT AVG(sv.gpa) FROM SinhVien sv WHERE sv.maKhoa = :maKhoa")
     Double avgGpaByKhoa(String maKhoa);
     
-    @Query("SELECT AVG(sv.gpa) FROM SinhVien sv WHERE sv.lop.maLop = :maLop")
+    @Query("SELECT AVG(sv.gpa) FROM SinhVien sv WHERE sv.maLop = :maLop")
     Double avgGpaByLop(String maLop);
     
     // Tìm sinh viên sinh nhật trong khoảng

@@ -2,7 +2,6 @@ package com.qlsv.repository;
 
 import com.qlsv.entity.TaiKhoan;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,8 +18,5 @@ public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, Long> {
     
     List<TaiKhoan> findByIsActive(Boolean isActive);
     
-    @Query("SELECT tk FROM TaiKhoan tk JOIN FETCH tk.sinhVien WHERE tk.username = :username")
-    Optional<TaiKhoan> findByUsernameWithSinhVien(String username);
-    
-    Optional<TaiKhoan> findBySinhVien_MaSV(String maSV);
+    Optional<TaiKhoan> findByMaSV(String maSV);
 }

@@ -49,8 +49,6 @@ public class BaoCao {
     @Column(name = "tieu_chi_loc", columnDefinition = "TEXT")
     private String tieuChiLoc; // JSON string chứa các tiêu chí lọc
     
-    // Relationships
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_sv")
-    private SinhVien sinhVien; // Người tạo báo cáo
+    @Column(name = "ma_sv", length = 20)
+    private String maSV; // Người tạo báo cáo
 }

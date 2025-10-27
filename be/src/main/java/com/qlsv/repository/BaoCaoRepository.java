@@ -15,7 +15,7 @@ public interface BaoCaoRepository extends JpaRepository<BaoCao, Long> {
     
     List<BaoCao> findByDinhDang(String dinhDang);
     
-    List<BaoCao> findBySinhVien_MaSV(String maSV);
+    List<BaoCao> findByMaSV(String maSV);
     
     List<BaoCao> findByNgayLapBetween(LocalDateTime startDate, LocalDateTime endDate);
     

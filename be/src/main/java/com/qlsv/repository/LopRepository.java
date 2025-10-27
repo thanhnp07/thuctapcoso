@@ -15,16 +15,10 @@ public interface LopRepository extends JpaRepository<Lop, String> {
     
     List<Lop> findByTenLopContainingIgnoreCase(String tenLop);
     
-    List<Lop> findByKhoa_MaKhoa(String maKhoa);
-    
-    @Query("SELECT l FROM Lop l LEFT JOIN FETCH l.danhSachSinhVien WHERE l.maLop = :maLop")
-    Optional<Lop> findByMaLopWithSinhVien(String maLop);
-    
-    @Query("SELECT l FROM Lop l JOIN FETCH l.khoa WHERE l.maLop = :maLop")
-    Optional<Lop> findByMaLopWithKhoa(String maLop);
+    List<Lop> findByMaKhoa(String maKhoa);
     
     boolean existsByMaLop(String maLop);
     
-    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.lop.maLop = :maLop")
+    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.maLop = :maLop")
     Long countSinhVienByMaLop(String maLop);
 }

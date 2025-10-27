@@ -9,8 +9,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "sinh_vien", indexes = {
@@ -65,6 +63,14 @@ public class SinhVien {
     @Builder.Default
     private String trangThai = "DANG_HOC"; // DANG_HOC, TAM_NGUNG, DA_TOT_NGHIEP
     
+    @Column(name = "ma_lop", length = 20, nullable = false)
+    @NotBlank(message = "Mã lớp không được để trống")
+    private String maLop;
+    
+    @Column(name = "ma_khoa", length = 20, nullable = false)
+    @NotBlank(message = "Mã khoa không được để trống")
+    private String maKhoa;
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -72,20 +78,4 @@ public class SinhVien {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
-    // Relationships
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_lop", nullable = false)
-    private Lop lop;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_khoa", nullable = false)
-    private Khoa khoa;
-    
-    @OneToOne(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
-    private TaiKhoan taiKhoan;
-    
-    @OneToMany(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<BaoCao> danhSachBaoCao = new HashSet<>();
 }

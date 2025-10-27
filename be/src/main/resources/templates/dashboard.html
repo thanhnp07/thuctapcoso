@@ -107,6 +107,21 @@
             border: none;
             border-radius: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+        
+        .chart-card .card-body {
+            padding: 25px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        
+        canvas {
+            max-height: 100%;
         }
     </style>
 </head>
@@ -181,7 +196,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <p class="text-muted mb-1">Tổng khoa</p>
-                                    <h3 class="mb-0">3</h3>
+                                    <h3 class="mb-0">6</h3>
                                 </div>
                                 <div class="stat-icon bg-success bg-opacity-10 text-success">
                                     <i class="bi bi-building"></i>
@@ -197,7 +212,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <p class="text-muted mb-1">Tổng lớp</p>
-                                    <h3 class="mb-0">3</h3>
+                                    <h3 class="mb-0">6</h3>
                                 </div>
                                 <div class="stat-icon bg-warning bg-opacity-10 text-warning">
                                     <i class="bi bi-book"></i>
@@ -230,7 +245,9 @@
                     <div class="card chart-card">
                         <div class="card-body">
                             <h5 class="card-title mb-4">Sinh viên theo khoa</h5>
-                            <canvas id="khoaChart"></canvas>
+                            <div class="chart-container">
+                                <canvas id="khoaChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -239,7 +256,9 @@
                     <div class="card chart-card">
                         <div class="card-body">
                             <h5 class="card-title mb-4">Sinh viên theo giới tính</h5>
-                            <canvas id="genderChart"></canvas>
+                            <div class="chart-container">
+                                <canvas id="genderChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -378,6 +397,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: false
@@ -418,6 +438,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom'

@@ -9,8 +9,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "khoa")
@@ -42,13 +40,4 @@ public class Khoa {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
-    // Relationships
-    @OneToMany(mappedBy = "khoa", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<Lop> danhSachLop = new HashSet<>();
-    
-    @OneToMany(mappedBy = "khoa", cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<SinhVien> danhSachSinhVien = new HashSet<>();
 }

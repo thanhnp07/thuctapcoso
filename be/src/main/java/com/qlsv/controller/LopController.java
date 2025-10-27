@@ -29,7 +29,7 @@ public class LopController {
     @GetMapping("/khoa/{maKhoa}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ApiResponse<List<Lop>>> getLopByKhoa(@PathVariable String maKhoa) {
-        List<Lop> danhSachLop = lopRepository.findByKhoa_MaKhoa(maKhoa);
+        List<Lop> danhSachLop = lopRepository.findByMaKhoa(maKhoa);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách lớp theo khoa thành công", danhSachLop));
     }
     

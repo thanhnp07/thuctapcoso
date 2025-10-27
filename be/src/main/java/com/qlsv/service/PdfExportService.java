@@ -5,7 +5,11 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.qlsv.entity.Khoa;
+import com.qlsv.entity.Lop;
 import com.qlsv.entity.SinhVien;
+import com.qlsv.repository.KhoaRepository;
+import com.qlsv.repository.LopRepository;
 import com.qlsv.repository.SinhVienRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,8 @@ import java.util.List;
 public class PdfExportService {
     
     private final SinhVienRepository sinhVienRepository;
+    private final LopRepository lopRepository;
+    private final KhoaRepository khoaRepository;
     
     public byte[] exportSinhVienToPdf(List<SinhVien> sinhVienList) throws DocumentException, IOException {
         log.info("Xuất {} sinh viên ra PDF", sinhVienList.size());
@@ -68,6 +74,9 @@ public class PdfExportService {
             int stt = 1;
             
             for (SinhVien sv : sinhVienList) {
+                Lop lop = sv.getMaLop() != null ? lopRepository.findById(sv.getMaLop()).orElse(null) : null;
+                Khoa khoa = sv.getMaKhoa() != null ? khoaRepository.findById(sv.getMaKhoa()).orElse(null) : null;
+                
                 table.addCell(new Phrase(String.valueOf(stt++), dataFont));
                 table.addCell(new Phrase(sv.getMaSV(), dataFont));
                 table.addCell(new Phrase(sv.getHoTen(), dataFont));
@@ -75,8 +84,8 @@ public class PdfExportService {
                 table.addCell(new Phrase(sv.getGioiTinh(), dataFont));
                 table.addCell(new Phrase(sv.getEmail() != null ? sv.getEmail() : "", dataFont));
                 table.addCell(new Phrase(sv.getSoDienThoai() != null ? sv.getSoDienThoai() : "", dataFont));
-                table.addCell(new Phrase(sv.getLop().getTenLop(), dataFont));
-                table.addCell(new Phrase(sv.getKhoa().getTenKhoa(), dataFont));
+                table.addCell(new Phrase(lop != null ? lop.getTenLop() : "", dataFont));
+                table.addCell(new Phrase(khoa != null ? khoa.getTenKhoa() : "", dataFont));
                 table.addCell(new Phrase(sv.getGpa() != null ? String.format("%.2f", sv.getGpa()) : "", dataFont));
                 table.addCell(new Phrase(sv.getTrangThai(), dataFont));
             }
@@ -105,12 +114,12 @@ public class PdfExportService {
     }
     
     public byte[] exportSinhVienByKhoaToPdf(String maKhoa) throws DocumentException, IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByKhoa_MaKhoa(maKhoa);
+        List<SinhVien> sinhVienList = sinhVienRepository.findByMaKhoa(maKhoa);
         return exportSinhVienToPdf(sinhVienList);
     }
     
     public byte[] exportSinhVienByLopToPdf(String maLop) throws DocumentException, IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByLop_MaLop(maLop);
+        List<SinhVien> sinhVienList = sinhVienRepository.findByMaLop(maLop);
         return exportSinhVienToPdf(sinhVienList);
     }
 }

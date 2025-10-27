@@ -47,6 +47,9 @@ public class TaiKhoan {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
     
+    @Column(name = "ma_sv", length = 20)
+    private String maSV;
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -54,9 +57,4 @@ public class TaiKhoan {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
-    // Relationships
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_sv", unique = true)
-    private SinhVien sinhVien;
 }
