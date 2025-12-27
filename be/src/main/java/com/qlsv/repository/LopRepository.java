@@ -9,16 +9,18 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface LopRepository extends JpaRepository<Lop, String> {
+public interface LopRepository extends JpaRepository<Lop, Long> {
     
     Optional<Lop> findByMaLop(String maLop);
     
     List<Lop> findByTenLopContainingIgnoreCase(String tenLop);
     
-    List<Lop> findByMaKhoa(String maKhoa);
+    List<Lop> findByIdKhoa(Long idKhoa);
     
     boolean existsByMaLop(String maLop);
     
-    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.maLop = :maLop")
-    Long countSinhVienByMaLop(String maLop);
+    Long countByIdKhoa(Long idKhoa);
+    
+    @Query("SELECT COUNT(sv) FROM SinhVien sv WHERE sv.idLop = :idLop")
+    Long countSinhVienByIdLop(Long idLop);
 }

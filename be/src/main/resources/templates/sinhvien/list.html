@@ -45,7 +45,7 @@
             <a class="nav-link active" href="/sinhvien"><i class="bi bi-people-fill"></i> Sinh viên</a>
             <a class="nav-link" href="/khoa"><i class="bi bi-building"></i> Khoa</a>
             <a class="nav-link" href="/lop"><i class="bi bi-book"></i> Lớp</a>
-            <div class="mt-3" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <div class="mt-3" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link" href="#" onclick="exportExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a>
                 <a class="nav-link" href="#" onclick="exportPDF()"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</a>
             </div>
@@ -78,22 +78,22 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Khoa</label>
-                            <select class="form-select" name="maKhoa">
+                            <select class="form-select" name="idKhoa">
                                 <option value="">Tất cả</option>
                                 <option th:each="khoa : ${danhSachKhoa}" 
-                                        th:value="${khoa.maKhoa}" 
+                                        th:value="${khoa.id}" 
                                         th:text="${khoa.tenKhoa}"
-                                        th:selected="${khoa.maKhoa == maKhoa}"></option>
+                                        th:selected="${khoa.id == idKhoa}"></option>
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Lớp</label>
-                            <select class="form-select" name="maLop">
+                            <select class="form-select" name="idLop">
                                 <option value="">Tất cả</option>
                                 <option th:each="lop : ${danhSachLop}" 
-                                        th:value="${lop.maLop}" 
+                                        th:value="${lop.id}" 
                                         th:text="${lop.tenLop}"
-                                        th:selected="${lop.maLop == maLop}"></option>
+                                        th:selected="${lop.id == idLop}"></option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -225,28 +225,23 @@
         
         function confirmDelete(maSV) {
             if (confirm('Bạn có chắc chắn muốn xóa sinh viên ' + maSV + '?')) {
-                fetch('/api/sinhvien/' + maSV, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Xóa thành công!');
-                            location.reload();
-                        } else {
-                            alert('Xóa thất bại: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Có lỗi xảy ra: ' + error);
-                    });
+                // Tạo form ẩn để submit DELETE request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/sinhvien/delete/' + maSV;
+                document.body.appendChild(form);
+                form.submit();
             }
         }
         
         function exportExcel() {
-            window.location.href = '/api/export/excel/all';
+            const params = new URLSearchParams(window.location.search);
+            window.location.href = '/sinhvien/export/excel?' + params.toString();
         }
         
         function exportPDF() {
-            window.location.href = '/api/export/pdf/all';
+            const params = new URLSearchParams(window.location.search);
+            window.location.href = '/sinhvien/export/pdf?' + params.toString();
         }
     </script>
 </body>

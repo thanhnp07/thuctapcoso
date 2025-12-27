@@ -62,9 +62,9 @@ public class ExcelExportService {
             for (SinhVien sv : sinhVienList) {
                 Row row = sheet.createRow(rowNum++);
                 
-                // Lookup related entities manually
-                Lop lop = lopRepository.findById(sv.getMaLop()).orElse(null);
-                Khoa khoa = khoaRepository.findById(sv.getMaKhoa()).orElse(null);
+                // Use relationships from entity
+                Lop lop = sv.getLop();
+                Khoa khoa = sv.getKhoa();
                 
                 row.createCell(0).setCellValue(rowNum - 1);
                 row.createCell(1).setCellValue(sv.getMaSV());
@@ -95,13 +95,13 @@ public class ExcelExportService {
         return exportSinhVienToExcel(allSinhVien);
     }
     
-    public byte[] exportSinhVienByKhoaToExcel(String maKhoa) throws IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByMaKhoa(maKhoa);
+    public byte[] exportSinhVienByKhoaToExcel(Long idKhoa) throws IOException {
+        List<SinhVien> sinhVienList = sinhVienRepository.findByIdKhoa(idKhoa);
         return exportSinhVienToExcel(sinhVienList);
     }
     
-    public byte[] exportSinhVienByLopToExcel(String maLop) throws IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByMaLop(maLop);
+    public byte[] exportSinhVienByLopToExcel(Long idLop) throws IOException {
+        List<SinhVien> sinhVienList = sinhVienRepository.findByIdLop(idLop);
         return exportSinhVienToExcel(sinhVienList);
     }
 }

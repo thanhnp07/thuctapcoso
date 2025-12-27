@@ -2,6 +2,7 @@ package com.qlsv.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -20,7 +21,11 @@ import java.time.LocalDateTime;
 public class Lop {
     
     @Id
-    @Column(name = "ma_lop", length = 20)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    
+    @Column(name = "ma_lop", length = 20, unique = true, nullable = false)
     @NotBlank(message = "Mã lớp không được để trống")
     @Size(max = 20, message = "Mã lớp không quá 20 ký tự")
     private String maLop;
@@ -36,9 +41,13 @@ public class Lop {
     @Column(name = "si_so")
     private Integer siSo;
     
-    @Column(name = "ma_khoa", length = 20, nullable = false)
-    @NotBlank(message = "Mã khoa không được để trống")
-    private String maKhoa;
+    @Column(name = "id_khoa", nullable = false)
+    @NotNull(message = "Khoa không được để trống")
+    private Long idKhoa;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_khoa", insertable = false, updatable = false)
+    private Khoa khoa;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

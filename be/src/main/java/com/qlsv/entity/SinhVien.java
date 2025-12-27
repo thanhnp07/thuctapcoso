@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "sinh_vien", indexes = {
     @Index(name = "idx_ho_ten", columnList = "ho_ten"),
-    @Index(name = "idx_ma_lop", columnList = "ma_lop"),
-    @Index(name = "idx_ma_khoa", columnList = "ma_khoa")
+    @Index(name = "idx_id_lop", columnList = "id_lop"),
+    @Index(name = "idx_id_khoa", columnList = "id_khoa")
 })
 @Data
 @NoArgsConstructor
@@ -24,7 +24,11 @@ import java.time.LocalDateTime;
 public class SinhVien {
     
     @Id
-    @Column(name = "ma_sv", length = 20)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    
+    @Column(name = "ma_sv", length = 20, unique = true, nullable = false)
     @NotBlank(message = "Mã sinh viên không được để trống")
     @Size(max = 20, message = "Mã sinh viên không quá 20 ký tự")
     private String maSV;
@@ -63,13 +67,21 @@ public class SinhVien {
     @Builder.Default
     private String trangThai = "DANG_HOC"; // DANG_HOC, TAM_NGUNG, DA_TOT_NGHIEP
     
-    @Column(name = "ma_lop", length = 20, nullable = false)
-    @NotBlank(message = "Mã lớp không được để trống")
-    private String maLop;
+    @Column(name = "id_lop", nullable = false)
+    @NotNull(message = "Lớp không được để trống")
+    private Long idLop;
     
-    @Column(name = "ma_khoa", length = 20, nullable = false)
-    @NotBlank(message = "Mã khoa không được để trống")
-    private String maKhoa;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_lop", insertable = false, updatable = false)
+    private Lop lop;
+    
+    @Column(name = "id_khoa", nullable = false)
+    @NotNull(message = "Khoa không được để trống")
+    private Long idKhoa;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_khoa", insertable = false, updatable = false)
+    private Khoa khoa;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

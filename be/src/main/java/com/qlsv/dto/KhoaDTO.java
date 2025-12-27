@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class KhoaDTO {
     
+    private Long id;
+    
     private String maKhoa;
     
     @NotBlank(message = "Tên khoa không được để trống")

@@ -62,13 +62,13 @@
         <div class="content-area">
             <div class="card form-card">
                 <div class="card-body p-4">
-                    <form id="studentForm">
+                    <form id="studentForm" method="post" action="/sinhvien/save" onsubmit="handleSubmit(event)">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label required">Mã sinh viên</label>
                                 <input type="text" class="form-control" id="maSV" name="maSV" 
                                        th:value="${sinhVien?.maSV}" 
-                                       th:readonly="${sinhVien != null}"
+                                       th:readonly="${sinhVien?.maSV != null}"
                                        required maxlength="20" placeholder="Ví dụ: SV001">
                                 <div class="invalid-feedback">Vui lòng nhập mã sinh viên</div>
                             </div>
@@ -118,24 +118,26 @@
                             
                             <div class="col-md-6 mb-3">
                                 <label class="form-label required">Khoa</label>
-                                <select class="form-select" id="maKhoa" name="maKhoa" required onchange="loadLopByKhoa()">
+                                <select class="form-select" id="idKhoa" name="idKhoa" required onchange="loadLopByKhoa()">
                                     <option value="">-- Chọn khoa --</option>
                                     <option th:each="khoa : ${danhSachKhoa}" 
-                                            th:value="${khoa.maKhoa}" 
+                                            th:value="${khoa.id}" 
                                             th:text="${khoa.tenKhoa}"
-                                            th:selected="${sinhVien?.maKhoa == khoa.maKhoa}"></option>
+                                            th:selected="${sinhVien?.idKhoa == khoa.id}"
+                                            th:data-ma-khoa="${khoa.maKhoa}"></option>
                                 </select>
                                 <div class="invalid-feedback">Vui lòng chọn khoa</div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
                                 <label class="form-label required">Lớp</label>
-                                <select class="form-select" id="maLop" name="maLop" required>
+                                <select class="form-select" id="idLop" name="idLop" required>
                                     <option value="">-- Chọn lớp --</option>
                                     <option th:each="lop : ${danhSachLop}" 
-                                            th:value="${lop.maLop}" 
+                                            th:value="${lop.id}" 
                                             th:text="${lop.tenLop}"
-                                            th:selected="${sinhVien?.maLop == lop.maLop}"></option>
+                                            th:selected="${sinhVien?.idLop == lop.id}"
+                                            th:data-id-khoa="${lop.idKhoa}"></option>
                                 </select>
                                 <div class="invalid-feedback">Vui lòng chọn lớp</div>
                             </div>
@@ -171,7 +173,7 @@
                                 <i class="bi bi-x-circle"></i> Hủy
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> <span th:text="${sinhVien != null ? 'Cập nhật' : 'Thêm mới'}">Lưu</span>
+                                <i class="bi bi-check-circle"></i> <span th:text="${sinhVien?.maSV != null ? 'Cập nhật' : 'Thêm mới'}">Lưu</span>
                             </button>
                         </div>
                     </form>
@@ -198,59 +200,41 @@
         });
         
         function loadLopByKhoa() {
-            const maKhoa = $('#maKhoa').val();
-            const maLopSelect = $('#maLop');
-            const currentMaLop = /*[[${sinhVien?.maLop}]]*/ '';
+            // Lọc danh sách lớp theo khoa đã chọn
+            const idKhoa = $('#idKhoa').val();
+            const idLopSelect = $('#idLop');
+            const currentIdLop = /*[[${sinhVien?.idLop}]]*/ null;
             
-            if (!maKhoa) {
-                maLopSelect.html('<option value="">-- Chọn lớp --</option>');
-                return;
-            }
-            
-            $.ajax({
-                url: '/api/lop/khoa/' + maKhoa,
-                type: 'GET',
-                success: function(response) {
-                    maLopSelect.html('<option value="">-- Chọn lớp --</option>');
-                    if (response.success && response.data) {
-                        response.data.forEach(function(lop) {
-                            const selected = lop.maLop === currentMaLop ? 'selected' : '';
-                            maLopSelect.append(`<option value="${lop.maLop}" ${selected}>${lop.tenLop}</option>`);
-                        });
-                    }
-                },
-                error: function() {
-                    alert('Không thể tải danh sách lớp');
-                }
+            // Lấy tất cả options lớp từ server
+            const allLopOptions = [];
+            /*[# th:each="lop : ${danhSachLop}"]*/ 
+            allLopOptions.push({
+                id: /*[[${lop.id}]]*/ null,
+                tenLop: /*[[${lop.tenLop}]]*/ '',
+                idKhoa: /*[[${lop.idKhoa}]]*/ null
             });
+            /*[/]*/
+            
+            // Clear và filter options
+            idLopSelect.html('<option value="">-- Chọn lớp --</option>');
+            
+            if (idKhoa) {
+                allLopOptions.filter(lop => lop.idKhoa == idKhoa).forEach(function(lop) {
+                    const selected = lop.id == currentIdLop ? 'selected' : '';
+                    idLopSelect.append(`<option value="${lop.id}" ${selected}>${lop.tenLop}</option>`);
+                });
+            }
         }
         
         function handleSubmit(event) {
-            event.preventDefault();
-            
             const form = event.target;
             if (!form.checkValidity()) {
+                event.preventDefault();
                 event.stopPropagation();
                 form.classList.add('was-validated');
                 return;
             }
-            
-            const formData = {
-                maSV: $('#maSV').val(),
-                hoTen: $('#hoTen').val(),
-                ngaySinh: $('#ngaySinh').val(),
-                gioiTinh: $('#gioiTinh').val(),
-                email: $('#email').val(),
-                soDienThoai: $('#soDienThoai').val() || null,
-                diaChi: $('#diaChi').val() || null,
-                maKhoa: $('#maKhoa').val(),
-                maLop: $('#maLop').val(),
-                gpa: $('#gpa').val() ? parseFloat($('#gpa').val()) : null,
-                trangThai: $('#trangThai').val()
-            };
-            
-            const url = isEdit ? '/api/sinhvien/' + maSVEdit : '/api/sinhvien';
-            const method = isEdit ? 'PUT' : 'POST';
+            // Form sẽ submit bình thường đến /sinhvien/save
             
             $.ajax({
                 url: url,

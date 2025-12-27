@@ -20,7 +20,11 @@ import java.time.LocalDateTime;
 public class Khoa {
     
     @Id
-    @Column(name = "ma_khoa", length = 20)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    
+    @Column(name = "ma_khoa", length = 20, unique = true, nullable = false)
     @NotBlank(message = "Mã khoa không được để trống")
     @Size(max = 20, message = "Mã khoa không quá 20 ký tự")
     private String maKhoa;

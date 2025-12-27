@@ -1,6 +1,7 @@
 package com.qlsv.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LopDTO {
     
+    private Long id;
+    
     private String maLop;
     
     @NotBlank(message = "Tên lớp không được để trống")
@@ -23,7 +26,9 @@ public class LopDTO {
     
     private Integer siSo;
     
-    @NotBlank(message = "Mã khoa không được để trống")
+    @NotNull(message = "Khoa không được để trống")
+    private Long idKhoa;
+    
     private String maKhoa;
     
     private String tenKhoa;

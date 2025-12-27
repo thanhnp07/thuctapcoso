@@ -1,247 +1,249 @@
 <!--
   AI coding agent guidance for the Student Management System repository.
-  Last updated: 2024-10-26
+  Last updated: 2025-12-27
 -->
 
 # Copilot / AI agent instructions — Student Management System (Quản lý sinh viên)
 
-This is a full-stack student management system with:
+A full-stack student management system built with **Spring Boot 3.2**, **Java 17**, **PostgreSQL**, **Thymeleaf** (server-side templating), and **Docker**.
 
-- `be/` — Spring Boot 3.2 backend (Java 17, PostgreSQL, JWT auth, Docker)
-- `fe/` — frontend (to be implemented)
-
-The backend is **fully functional** with REST APIs, database, authentication, export features, and Docker deployment.
-
-## Quick facts (from repository scan)
+## Quick facts
 
 ### Backend (`be/`)
-- **Tech stack:** Spring Boot 3.2.0, Java 17, PostgreSQL 15, Docker
-- **Architecture:** Layered (Controller → Service → Repository → Entity)
-- **Security:** JWT authentication with role-based access (ADMIN, USER)
+- **Tech stack:** Spring Boot 3.2, Java 17, PostgreSQL 15, Thymeleaf, Apache POI, iText, Docker
+- **Architecture:** Layered (Web/REST Controller → Service → Repository → Entity)
+- **Security:** Session-based (Spring Security) + form login; role-based access (ADMIN/USER)
+- **UI:** Server-side rendered Thymeleaf templates (fully functional web UI, not just REST API)
 - **Key features:**
-  - CRUD operations for students, classes, departments
-  - Advanced search with pagination
-  - Export to Excel (Apache POI) and PDF (iText)
-  - Dockerized deployment with docker-compose
-- **Main files:**
-  - `pom.xml` — Maven dependencies
-  - `src/main/resources/application.yml` — Configuration
-  - `docker-compose.yml` — Multi-container setup (app + PostgreSQL + pgAdmin)
-  - `be/README.md` — Comprehensive setup guide
-  - `be/API_DOCUMENTATION.md` — Complete API reference
-  - `be/QUICK_TEST.md` — Step-by-step testing guide
+  - Complete CRUD for students (Sinh Viên), departments (Khoa), classes (Lớp)
+  - Advanced search & pagination via Thymeleaf UI and REST API
+  - Excel/PDF export with Apache POI and iText
+  - Role-based authorization (ADMIN can edit, USER is read-only)
+  - Docker multi-container (app + PostgreSQL)
 
 ### Frontend (`fe/`)
-- Not yet implemented (placeholder for React/Vue/Angular frontend)
+- Not yet implemented (placeholder for future standalone frontend)
 
-## What an AI agent should do when working on this project
+## Key architectural decisions
 
-### For Backend (`be/`) Development
+### Hybrid UI approach (Thymeleaf + REST)
+- **Web controllers** (`*WebController.java`): Serve Thymeleaf-rendered HTML pages with forms for CRUD operations
+- **REST controllers** (`*Controller.java`): Provide JSON APIs for programmatic access
+- **Sessions**: Uses session-based security (HttpSession), not JWT tokens
+- Example: `SinhVienWebController` renders UI pages; `SinhVienController` provides REST endpoints for both
 
-1. **Read first:**
-   - `be/README.md` — Setup, architecture, and commands
-   - `be/API_DOCUMENTATION.md` — All REST endpoints, request/response formats
-   - `be/QUICK_TEST.md` — How to test the system
+### Data flow: Database → Entity → DTO → View/JSON
+1. **Entity layer** (`com.qlsv.entity.*`): JPA entities with relationships (Khoa→Lop→SinhVien)
+2. **Repository layer**: Spring Data JPA with custom `@Query` methods
+3. **Service layer**: Business logic and validation (e.g., `SinhVienService.searchSinhVien()`)
+4. **Controller layer**: Convert to DTOs, return Thymeleaf models or JSON responses via `ApiResponse<T>`
+5. **Templates** (`src/main/resources/templates/`): Thymeleaf HTML for web UI
 
-2. **Running the backend:**
-   ```powershell
-   cd be
-   .\start.ps1  # Windows PowerShell (recommended)
-   # OR
-   docker-compose up -d --build
-   ```
-   Services: http://localhost:8080/api (backend), http://localhost:5050 (pgAdmin)
+### Security model
+- **Session-based** (not JWT): Standard Spring Security with form login
+- **Authentication**: `CustomUserDetailsService` loads users from database (role = ADMIN or USER)
+- **Authorization**: `@PreAuthorize("hasRole('ADMIN')")` on REST endpoints; Thymeleaf `sec:authorize` in templates
+- **Password hashing**: BCrypt via `PasswordEncoder` bean
+- **Default credentials** (from DataLoader): `admin/admin123` (ADMIN), `user1/user123` (USER)
 
-3. **Project structure to understand:**
-   - `com.qlsv.entity.*` — JPA entities (Khoa, Lop, SinhVien, TaiKhoan, BaoCao) with full relationships
-   - `com.qlsv.repository.*` — Spring Data JPA repos with custom queries
-   - `com.qlsv.service.*` — Business logic, including Excel/PDF export services
-   - `com.qlsv.controller.*` — REST controllers with role-based security
-   - `com.qlsv.security.*` — JWT config, filters, Spring Security setup
-   - `com.qlsv.dto.*` — Data transfer objects for API requests/responses
-
-4. **When adding new features:**
-   - Follow the existing layered pattern: DTO → Controller → Service → Repository → Entity
-   - Use `@PreAuthorize("hasRole('ADMIN')")` for admin-only endpoints
-   - Add validation annotations (`@NotBlank`, `@Valid`, etc.) to DTOs
-   - Update `API_DOCUMENTATION.md` with new endpoints
-   - Add tests to `QUICK_TEST.md` if introducing new workflows
-
-5. **Testing changes:**
-   - Use PowerShell scripts in `QUICK_TEST.md` for quick API tests
-   - Or use `test-data.http` for REST client testing
-   - Check logs: `docker-compose logs -f backend`
-
-### For Frontend (`fe/`) Development (future)
-
-- When implementing, integrate with backend API at `http://localhost:8080/api`
-- Use JWT token from `/auth/login` in `Authorization: Bearer <token>` header
-- Refer to `be/API_DOCUMENTATION.md` for complete endpoint specs
-
-## Architecture and patterns specific to this codebase
-
-### Backend Architecture (3-tier layered)
-
-```
-Client/Frontend
-    ↓ HTTP/REST
-Controller Layer (AuthController, SinhVienController, ExportController)
-    ↓ DTOs
-Service Layer (SinhVienService, ExcelExportService, PdfExportService)
-    ↓ Entities
-Repository Layer (Spring Data JPA - KhoaRepository, LopRepository, SinhVienRepository, etc.)
-    ↓ JDBC
-PostgreSQL Database
-```
-
-**Key architectural decisions:**
-
-1. **Entity relationships (JPA):**
-   - `Khoa` (1) → (n) `Lop` → (n) `SinhVien`
-   - `SinhVien` (1) ← (1) `TaiKhoan`
-   - `SinhVien` (1) → (n) `BaoCao`
-   - Use `@ManyToOne(fetch = FetchType.LAZY)` for performance
-   - Builder pattern with Lombok for entity construction
-
-2. **Security flow:**
-   - JWT token generated on `/auth/login`
-   - `JwtAuthenticationFilter` validates token on every request
-   - `SecurityConfig` defines role-based access (ADMIN can CRUD, USER can read-only)
-   - Passwords hashed with BCrypt
-
-3. **Export pattern:**
-   - Separate service classes: `ExcelExportService`, `PdfExportService`
-   - Return `byte[]` from service, convert to file download in controller
-   - Filename includes timestamp: `DanhSachSinhVien_20241026_103000.xlsx`
-
-4. **Error handling:**
-   - `@RestControllerAdvice` with `GlobalExceptionHandler`
-   - Custom exceptions: `ResourceNotFoundException`
-   - Validation errors auto-formatted from `@Valid` annotations
-   - Standard response wrapper: `ApiResponse<T>`
-
-5. **Search and pagination:**
-   - Use `@Query` with `Pageable` for complex searches
-   - `SinhVienRepository.searchSinhVien(...)` accepts multiple optional filters
-   - Return `Page<SinhVienDTO>` for frontend pagination support
-
-## Project-specific conventions and patterns
-
-### Code Style
-- Use **Lombok** annotations (`@Data`, `@Builder`, `@RequiredArgsConstructor`) to reduce boilerplate
-- Entity field names in **snake_case** for database columns: `ma_sv`, `ho_ten`, `ngay_sinh`
-- Java class/method names in **camelCase**: `maSV`, `hoTen`, `ngaySinh`
-- All log messages in Vietnamese for consistency with business domain
-
-### Validation Rules
-- Mã sinh viên (Student ID): max 20 chars, unique, required
-- Email: must be valid format, unique across students
-- Phone: 10-11 digits, regex validated
-- GPA: 0.0 to 4.0 scale
-- Date of birth: must be in the past
-- Gender: "Nam", "Nữ", or "Khác"
-
-### Database Conventions
-- Use `@CreatedDate` and `@LastModifiedDate` for audit fields (enable with `@EnableJpaAuditing`)
-- Foreign keys named consistently: `ma_khoa`, `ma_lop`, `ma_sv`
-- Indexes on frequently searched columns: `@Index` on `ho_ten`, `ma_lop`, `ma_khoa`
-
-### API Response Format
-Always wrap in `ApiResponse<T>`:
-```json
-{
-  "success": true/false,
-  "message": "Vietnamese message",
-  "data": <actual data>,
-  "timestamp": "ISO-8601 datetime"
-}
-```
-
-### Docker Setup
-- Multi-container: `backend`, `postgres`, `pgadmin` (optional)
-- Environment variables in `docker-compose.yml` for config
-- Health checks ensure postgres is ready before backend starts
-- Volumes persist database data across restarts
-
-## Examples: Common tasks in this codebase
-
-### 1. Adding a new REST endpoint for a new entity
-
-**Step 1:** Create entity in `com.qlsv.entity`:
-```java
-@Entity
-@Table(name = "table_name")
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
-public class MyEntity {
-    @Id
-    private String id;
-    // fields with validation annotations
-}
-```
-
-**Step 2:** Create repository in `com.qlsv.repository`:
-```java
-public interface MyEntityRepository extends JpaRepository<MyEntity, String> {
-    Optional<MyEntity> findByField(String field);
-}
-```
-
-**Step 3:** Create DTO in `com.qlsv.dto`:
-```java
-@Data @Builder
-public class MyEntityDTO {
-    @NotBlank private String field;
-}
-```
-
-**Step 4:** Create service in `com.qlsv.service`:
-```java
-@Service @RequiredArgsConstructor
-public class MyEntityService {
-    private final MyEntityRepository repository;
-    // CRUD methods
-}
-```
-
-**Step 5:** Create controller in `com.qlsv.controller`:
-```java
-@RestController
-@RequestMapping("/myentity")
-@PreAuthorize("hasRole('ADMIN')")
-public class MyEntityController {
-    private final MyEntityService service;
-    // endpoints
-}
-```
-
-### 2. Adding a new export format
-
-Create a new service extending the pattern in `ExcelExportService.java` or `PdfExportService.java`, then add endpoint to `ExportController`.
-
-### 3. Running backend after code changes
+## Running the backend
 
 ```powershell
-# If using Docker (recommended)
-docker-compose down
+# Windows PowerShell with Docker (recommended)
+cd be
 docker-compose up -d --build
+docker-compose logs -f backend  # Monitor logs
+docker-compose down  # Stop containers
+docker-compose down -v  # Stop and reset database
 
-# If running locally
-./mvnw clean package -DskipTests
-./mvnw spring-boot:run
+# Access points:
+# - Web UI: http://localhost:8080 (login page)
+# - REST API: http://localhost:8080/api/sinhvien, /api/khoa, /api/lop, etc.
+# - Database: localhost:5432 (postgres/postgres123)
 ```
 
-### 4. Adding a new search filter
+## Project structure essentials
 
-Edit `SinhVienRepository.searchSinhVien()` query to include new parameter, then update controller and service signatures.
+**Core packages (follow this layering pattern):**
+- `com.qlsv.entity.*` — JPA entities: `Khoa`, `Lop`, `SinhVien`, `TaiKhoan`, `BaoCao`
+- `com.qlsv.repository.*` — Spring Data JPA repositories with `@Query` custom finders
+- `com.qlsv.service.*` — Business logic: `SinhVienService`, `ExcelExportService`, `PdfExportService`
+- `com.qlsv.controller.*` — REST controllers (REST endpoints)
+- `com.qlsv.controller.*WebController` — Thymeleaf web controllers (HTML page rendering)
+- `com.qlsv.security.*` — Spring Security config, custom user details service
+- `com.qlsv.dto.*` — Transfer objects: `ApiResponse<T>`, `SinhVienDTO`, `KhoaDTO`, `LopDTO`
+- `com.qlsv.exception.*` — Global exception handler and custom exceptions
+
+**Template structure:**
+- `templates/login.html` — Login form
+- `templates/dashboard.html` — Dashboard (requires authentication)
+- `templates/sinhvien/list.html` — List all students with search/filter
+- `templates/sinhvien/form.html` — Add/Edit student
+- `templates/sinhvien/view.html` — View student details
+- `templates/khoa/list.html` — Departments
+- `templates/lop/list.html` — Classes
+- `templates/layout/main.html` — Master layout with navbar
+
+## Critical developer workflows
+
+### Build and run locally
+```powershell
+cd be
+# Maven build (skip tests for faster iteration)
+./mvnw clean package -DskipTests
+./mvnw spring-boot:run
+
+# Or run with Docker Compose
+docker-compose up -d --build
+docker-compose logs -f backend
+```
+
+### Reset database (development)
+```powershell
+cd be
+docker-compose down -v  # Removes volumes, next startup re-initializes
+docker-compose up -d --build
+```
+
+### Testing
+- Check logs for errors: `docker-compose logs -f backend`
+- Test REST endpoints via browser at `http://localhost:8080` (web UI) or with curl/Postman for API
+- Database queries can be verified via PostgreSQL client at `localhost:5432`
+
+### Deployment
+- Docker is mandatory for production
+- Environment variables are set in `docker-compose.yml` and injected into Spring config
+- No hardcoded credentials — all config via `application.yml` placeholders
+
+## When adding features
+
+### Adding a new REST API endpoint
+
+**Pattern:** Create entity → repository → service → REST controller (+ optional web controller for UI)
+
+1. **Entity** (`com.qlsv.entity/MyEntity.java`):
+```java
+@Entity @Table(name = "my_entity") @Data @Builder @NoArgsConstructor @AllArgsConstructor
+public class MyEntity {
+    @Id private String id;
+    @NotBlank private String name;
+    // Add validation annotations, foreign keys (@ManyToOne), relationships
+}
+```
+
+2. **Repository** (`com.qlsv.repository/MyEntityRepository.java`):
+```java
+public interface MyEntityRepository extends JpaRepository<MyEntity, String> {
+    Optional<MyEntity> findByName(String name);
+    @Query("SELECT m FROM MyEntity m WHERE m.name LIKE %:keyword%")
+    Page<MyEntity> search(String keyword, Pageable p);
+}
+```
+
+3. **DTO** (`com.qlsv.dto/MyEntityDTO.java`):
+```java
+@Data @Builder public class MyEntityDTO {
+    @NotBlank private String name;
+    // Fields for API responses
+}
+```
+
+4. **Service** (`com.qlsv.service/MyEntityService.java`):
+```java
+@Service @RequiredArgsConstructor public class MyEntityService {
+    private final MyEntityRepository repo;
+    public MyEntityDTO create(MyEntityDTO dto) { /* validation + save */ }
+    public Page<MyEntityDTO> search(String keyword, Pageable p) { /* call repo */ }
+}
+```
+
+5. **REST Controller** (`com.qlsv.controller/MyEntityController.java`):
+```java
+@RestController @RequestMapping("/api/myentity") @RequiredArgsConstructor
+public class MyEntityController {
+    private final MyEntityService service;
+    @GetMapping public ApiResponse<List<MyEntityDTO>> getAll() { }
+    @PostMapping @PreAuthorize("hasRole('ADMIN')") public ApiResponse<MyEntityDTO> create(@Valid @RequestBody MyEntityDTO dto) { }
+}
+```
+
+6. **Optional: Web Controller** for HTML UI (same pattern with `@Controller`, return template names)
+
+### Adding search filters
+
+Edit the repository `@Query` and update service signature:
+```java
+// Repository
+@Query("SELECT s FROM SinhVien s WHERE (:keyword IS NULL OR s.hoTen LIKE %:keyword%) AND (:maKhoa IS NULL OR s.lop.khoa.maKhoa = :maKhoa)")
+Page<SinhVien> searchSinhVien(@Param("keyword") String kw, @Param("maKhoa") String kh, Pageable p);
+
+// Service
+public Page<SinhVienDTO> searchSinhVien(String kw, String kh, Pageable p) { return repo.searchSinhVien(kw, kh, p).map(mapper); }
+```
+
+### Adding export functionality
+
+Extend `ExcelExportService` or `PdfExportService` pattern:
+```java
+// Service method
+public byte[] exportToExcel(List<SinhVienDTO> data) {
+    Workbook wb = new XSSFWorkbook();
+    Sheet sheet = wb.createSheet("Sinh Viên");
+    // Create headers, populate rows, style
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    wb.write(out);
+    wb.close();
+    return out.toByteArray();
+}
+
+// Controller endpoint
+@GetMapping("/excel/all") @PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<byte[]> exportExcel() {
+    byte[] data = exportService.exportToExcel(sinhVienService.getAll());
+    return ResponseEntity.ok()
+        .header("Content-Disposition", "attachment; filename=export.xlsx")
+        .body(data);
+}
+```
+
+## Code style and conventions
+
+**Naming:**
+- Entity field names: snake_case in database (`ma_sv`, `ho_ten`, `ngay_sinh`), camelCase in Java code
+- Always use Lombok: `@Data`, `@Builder`, `@RequiredArgsConstructor`, `@NoArgsConstructor`, `@AllArgsConstructor`
+- All log messages and user-facing text in **Vietnamese** for consistency
+
+**Validation:**
+- Add `@NotBlank`, `@NotNull`, `@Valid` to DTO fields
+- Custom validation in Service layer (e.g., check unique `maSV` before insert)
+- Return validation errors via `GlobalExceptionHandler` → `ApiResponse<T>` with `success=false`
+
+**API Responses:**
+Always wrap responses in `ApiResponse<T>`:
+```java
+ApiResponse.success("Thêm thành công", sinhVienDTO)
+ApiResponse.error("Mã sinh viên đã tồn tại")
+```
+
+**Pagination:**
+- Use `Pageable` parameter in controller: `@RequestParam(defaultValue = "0") int page`
+- Return `Page<DTO>` from service, Thymeleaf templates handle pagination UI
+
+**Database:**
+- Use `@CreatedDate`, `@LastModifiedDate` for audit fields (enable `@EnableJpaAuditing` in config)
+- Add `@Index` on frequently searched columns: `@Index(name = "idx_ho_ten", columnList = "ho_ten")`
+- Foreign key naming: `ma_khoa`, `ma_lop`, `ma_sv` (consistent with business domain)
 
 ## What NOT to assume or change
 
 - **Do not** change database schema without updating both entity annotations and any related repositories/services
-- **Do not** remove or modify existing security configurations without understanding JWT flow
+- **Do not** remove or modify existing security configurations without understanding session-based flow
 - **Do not** change the `ApiResponse<T>` wrapper structure (it's used consistently across all endpoints)
 - **Do not** modify Docker environment variables in `docker-compose.yml` without updating `application.yml` accordingly
 - **Do not** assume frontend is implemented — it's a placeholder for future work
 - **Do not** mix English and Vietnamese in user-facing messages (stick to Vietnamese for consistency)
+- **Do not** use JWT — this project uses session-based authentication (Spring Security HttpSession)
+- **Do not** remove Thymeleaf web controllers — they serve the actual HTML UI, not just APIs
 
 ## Key files to reference
 
@@ -258,10 +260,11 @@ Edit `SinhVienRepository.searchSinhVien()` query to include new parameter, then 
 
 - **Backend not starting:** Check `docker-compose logs -f backend` for errors
 - **Database connection issues:** Ensure postgres container is healthy: `docker-compose ps`
-- **JWT errors:** Verify token hasn't expired (24h validity), re-login if needed
+- **Session/Auth errors:** Verify user credentials in DataLoader, check SecurityConfig session settings
 - **Validation errors:** Check `GlobalExceptionHandler` logs and ensure DTO fields match validation rules
 - **Export errors:** Verify Apache POI and iText dependencies in `pom.xml`, check logs for font/encoding issues
+- **Thymeleaf template errors:** Check logs for missing templates or incorrect variable binding in controller models
 
 ---
 
-**Last updated:** 2024-10-26 after full backend implementation with Docker, JWT auth, CRUD APIs, search, and export features.
+**Last updated:** 2025-12-27 after verifying actual implementation (session-based auth, Thymeleaf UI, hybrid REST/Web controllers)

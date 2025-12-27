@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface KhoaRepository extends JpaRepository<Khoa, String> {
+public interface KhoaRepository extends JpaRepository<Khoa, Long> {
     
     Optional<Khoa> findByMaKhoa(String maKhoa);
     

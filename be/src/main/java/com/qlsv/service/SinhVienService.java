@@ -40,6 +40,12 @@ public class SinhVienService {
         return convertToDTO(sinhVien);
     }
     
+    public SinhVienDTO getSinhVienByIdEntity(Long id) {
+        SinhVien sinhVien = sinhVienRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên với id: " + id));
+        return convertToDTO(sinhVien);
+    }
+    
     public SinhVienDTO createSinhVien(SinhVienDTO dto) {
         log.info("Tạo sinh viên mới: {}", dto.getMaSV());
         
@@ -51,14 +57,12 @@ public class SinhVienService {
             throw new IllegalArgumentException("Email đã được sử dụng: " + dto.getEmail());
         }
         
-        // Validate khoa và lớp tồn tại
-        if (!khoaRepository.existsById(dto.getMaKhoa())) {
-            throw new ResourceNotFoundException("Không tìm thấy khoa: " + dto.getMaKhoa());
-        }
+        // Validate khoa và lớp tồn tại (using ID)
+        Khoa khoa = khoaRepository.findById(dto.getIdKhoa())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khoa với id: " + dto.getIdKhoa()));
         
-        if (!lopRepository.existsById(dto.getMaLop())) {
-            throw new ResourceNotFoundException("Không tìm thấy lớp: " + dto.getMaLop());
-        }
+        Lop lop = lopRepository.findById(dto.getIdLop())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp với id: " + dto.getIdLop()));
         
         SinhVien sinhVien = SinhVien.builder()
                 .maSV(dto.getMaSV())
@@ -70,8 +74,10 @@ public class SinhVienService {
                 .diaChi(dto.getDiaChi())
                 .gpa(dto.getGpa())
                 .trangThai(dto.getTrangThai() != null ? dto.getTrangThai() : "DANG_HOC")
-                .maLop(dto.getMaLop())
-                .maKhoa(dto.getMaKhoa())
+                .idLop(dto.getIdLop())
+                .idKhoa(dto.getIdKhoa())
+                .lop(lop)
+                .khoa(khoa)
                 .build();
         
         SinhVien saved = sinhVienRepository.save(sinhVien);
@@ -90,18 +96,18 @@ public class SinhVienService {
             throw new IllegalArgumentException("Email đã được sử dụng: " + dto.getEmail());
         }
         
-        if (dto.getMaLop() != null && !dto.getMaLop().equals(sinhVien.getMaLop())) {
-            if (!lopRepository.existsById(dto.getMaLop())) {
-                throw new ResourceNotFoundException("Không tìm thấy lớp: " + dto.getMaLop());
-            }
-            sinhVien.setMaLop(dto.getMaLop());
+        if (dto.getIdLop() != null && !dto.getIdLop().equals(sinhVien.getIdLop())) {
+            Lop lop = lopRepository.findById(dto.getIdLop())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp với id: " + dto.getIdLop()));
+            sinhVien.setIdLop(dto.getIdLop());
+            sinhVien.setLop(lop);
         }
         
-        if (dto.getMaKhoa() != null && !dto.getMaKhoa().equals(sinhVien.getMaKhoa())) {
-            if (!khoaRepository.existsById(dto.getMaKhoa())) {
-                throw new ResourceNotFoundException("Không tìm thấy khoa: " + dto.getMaKhoa());
-            }
-            sinhVien.setMaKhoa(dto.getMaKhoa());
+        if (dto.getIdKhoa() != null && !dto.getIdKhoa().equals(sinhVien.getIdKhoa())) {
+            Khoa khoa = khoaRepository.findById(dto.getIdKhoa())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khoa với id: " + dto.getIdKhoa()));
+            sinhVien.setIdKhoa(dto.getIdKhoa());
+            sinhVien.setKhoa(khoa);
         }
         
         if (dto.getHoTen() != null) sinhVien.setHoTen(dto.getHoTen());
@@ -128,50 +134,46 @@ public class SinhVienService {
         log.info("Đã xóa sinh viên: {}", maSV);
     }
     
-    public Page<SinhVienDTO> searchSinhVien(String maSV, String hoTen, String maLop, 
-                                            String maKhoa, String gioiTinh, String trangThai, 
+    public Page<SinhVienDTO> searchSinhVien(String maSV, String hoTen, Long idLop, 
+                                            Long idKhoa, String gioiTinh, String trangThai, 
                                             Pageable pageable) {
-        log.info("Tìm kiếm sinh viên với tiêu chí: maSV={}, hoTen={}, maLop={}, maKhoa={}", 
-                maSV, hoTen, maLop, maKhoa);
+        log.info("Tìm kiếm sinh viên với tiêu chí: maSV={}, hoTen={}, idLop={}, idKhoa={}", 
+                maSV, hoTen, idLop, idKhoa);
         
         // Normalize empty strings to null to avoid JPQL parameter issues
         maSV = (maSV != null && maSV.trim().isEmpty()) ? null : maSV;
         hoTen = (hoTen != null && hoTen.trim().isEmpty()) ? null : hoTen;
-        maLop = (maLop != null && maLop.trim().isEmpty()) ? null : maLop;
-        maKhoa = (maKhoa != null && maKhoa.trim().isEmpty()) ? null : maKhoa;
         gioiTinh = (gioiTinh != null && gioiTinh.trim().isEmpty()) ? null : gioiTinh;
         trangThai = (trangThai != null && trangThai.trim().isEmpty()) ? null : trangThai;
         
         Page<SinhVien> result = sinhVienRepository.searchSinhVien(
-                maSV, hoTen, maLop, maKhoa, gioiTinh, trangThai, pageable);
+                maSV, hoTen, idLop, idKhoa, gioiTinh, trangThai, pageable);
         
         return result.map(this::convertToDTO);
     }
     
     // Overload cho web controller với keyword search
-    public Page<SinhVienDTO> searchSinhVien(String keyword, String maKhoa, String maLop, 
+    public Page<SinhVienDTO> searchSinhVien(String keyword, Long idKhoa, Long idLop, 
                                             String gioiTinh, Pageable pageable) {
         // keyword tìm kiếm theo MÃ SV hoặc HỌ TÊN (OR logic)
         // Normalize empty strings to null
         keyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
-        maLop = (maLop != null && maLop.trim().isEmpty()) ? null : maLop;
-        maKhoa = (maKhoa != null && maKhoa.trim().isEmpty()) ? null : maKhoa;
         gioiTinh = (gioiTinh != null && gioiTinh.trim().isEmpty()) ? null : gioiTinh;
         
         Page<SinhVien> result = sinhVienRepository.searchByKeyword(
-                keyword, maLop, maKhoa, gioiTinh, pageable);
+                keyword, idLop, idKhoa, gioiTinh, pageable);
         
         return result.map(this::convertToDTO);
     }
     
-    public List<SinhVienDTO> getSinhVienByLop(String maLop) {
-        return sinhVienRepository.findByMaLop(maLop).stream()
+    public List<SinhVienDTO> getSinhVienByLop(Long idLop) {
+        return sinhVienRepository.findByIdLop(idLop).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
-    public List<SinhVienDTO> getSinhVienByKhoa(String maKhoa) {
-        return sinhVienRepository.findByMaKhoa(maKhoa).stream()
+    public List<SinhVienDTO> getSinhVienByKhoa(Long idKhoa) {
+        return sinhVienRepository.findByIdKhoa(idKhoa).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -185,13 +187,12 @@ public class SinhVienService {
     }
     
     private SinhVienDTO convertToDTO(SinhVien sinhVien) {
-        // Lấy thông tin lớp và khoa nếu cần
-        Lop lop = sinhVien.getMaLop() != null ? 
-            lopRepository.findById(sinhVien.getMaLop()).orElse(null) : null;
-        Khoa khoa = sinhVien.getMaKhoa() != null ? 
-            khoaRepository.findById(sinhVien.getMaKhoa()).orElse(null) : null;
+        // Lấy thông tin lớp và khoa từ relationship (LAZY loading)
+        Lop lop = sinhVien.getLop();
+        Khoa khoa = sinhVien.getKhoa();
         
         return SinhVienDTO.builder()
+                .id(sinhVien.getId())
                 .maSV(sinhVien.getMaSV())
                 .hoTen(sinhVien.getHoTen())
                 .ngaySinh(sinhVien.getNgaySinh())
@@ -201,9 +202,11 @@ public class SinhVienService {
                 .diaChi(sinhVien.getDiaChi())
                 .gpa(sinhVien.getGpa())
                 .trangThai(sinhVien.getTrangThai())
-                .maLop(sinhVien.getMaLop())
+                .idLop(sinhVien.getIdLop())
+                .maLop(lop != null ? lop.getMaLop() : null)
                 .tenLop(lop != null ? lop.getTenLop() : null)
-                .maKhoa(sinhVien.getMaKhoa())
+                .idKhoa(sinhVien.getIdKhoa())
+                .maKhoa(khoa != null ? khoa.getMaKhoa() : null)
                 .tenKhoa(khoa != null ? khoa.getTenKhoa() : null)
                 .createdAt(sinhVien.getCreatedAt())
                 .updatedAt(sinhVien.getUpdatedAt())

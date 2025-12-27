@@ -74,8 +74,8 @@ public class PdfExportService {
             int stt = 1;
             
             for (SinhVien sv : sinhVienList) {
-                Lop lop = sv.getMaLop() != null ? lopRepository.findById(sv.getMaLop()).orElse(null) : null;
-                Khoa khoa = sv.getMaKhoa() != null ? khoaRepository.findById(sv.getMaKhoa()).orElse(null) : null;
+                Lop lop = sv.getLop();
+                Khoa khoa = sv.getKhoa();
                 
                 table.addCell(new Phrase(String.valueOf(stt++), dataFont));
                 table.addCell(new Phrase(sv.getMaSV(), dataFont));
@@ -113,13 +113,13 @@ public class PdfExportService {
         return exportSinhVienToPdf(allSinhVien);
     }
     
-    public byte[] exportSinhVienByKhoaToPdf(String maKhoa) throws DocumentException, IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByMaKhoa(maKhoa);
+    public byte[] exportSinhVienByKhoaToPdf(Long idKhoa) throws DocumentException, IOException {
+        List<SinhVien> sinhVienList = sinhVienRepository.findByIdKhoa(idKhoa);
         return exportSinhVienToPdf(sinhVienList);
     }
     
-    public byte[] exportSinhVienByLopToPdf(String maLop) throws DocumentException, IOException {
-        List<SinhVien> sinhVienList = sinhVienRepository.findByMaLop(maLop);
+    public byte[] exportSinhVienByLopToPdf(Long idLop) throws DocumentException, IOException {
+        List<SinhVien> sinhVienList = sinhVienRepository.findByIdLop(idLop);
         return exportSinhVienToPdf(sinhVienList);
     }
 }

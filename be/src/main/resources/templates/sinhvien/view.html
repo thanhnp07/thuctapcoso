@@ -211,19 +211,12 @@
         
         function confirmDelete(maSV) {
             if (confirm('Bạn có chắc chắn muốn xóa sinh viên ' + maSV + '?')) {
-                fetch('/api/sinhvien/' + maSV, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Xóa thành công!');
-                            window.location.href = '/sinhvien';
-                        } else {
-                            alert('Xóa thất bại: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Có lỗi xảy ra: ' + error);
-                    });
+                // Tạo form ẩn để submit DELETE request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/sinhvien/delete/' + maSV;
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>

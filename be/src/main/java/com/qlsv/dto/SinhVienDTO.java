@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 public class SinhVienDTO {
     
+    private Long id;
+    
     private String maSV;
     
     @NotBlank(message = "Họ tên không được để trống")
@@ -42,13 +44,17 @@ public class SinhVienDTO {
     
     private String trangThai;
     
-    @NotBlank(message = "Mã lớp không được để trống")
+    @NotNull(message = "Lớp không được để trống")
+    private Long idLop;
+    
     private String maLop;
     
     private String tenLop;
     
-    @NotBlank(message = "Mã khoa không được để trống")
-    private String maKhoa;
+    @NotNull(message = "Khoa không được để trống")
+    private Long idKhoa;
+    
+    private String maKhoa;  // Display only, không cần validation
     
     private String tenKhoa;
     
